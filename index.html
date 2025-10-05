@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор мозаики</title>
+
+    <!-- Шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-blue: rgb(31, 65, 114);
+            --primary-pink: rgb(253, 240, 240);
+            --secondary-blue: rgba(31, 65, 114, 0.8);
+            --secondary-pink: rgba(253, 240, 240, 0.8);
+            --success-color: rgba(76, 175, 80, 0.7);
+            --error-color: rgba(244, 67, 54, 0.8);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--primary-pink);
+            color: var(--primary-blue);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Nunito', sans-serif;
+            line-height: 1.6;
+        }
+        
+        header {
+            background-color: var(--primary-blue);
+            color: var(--primary-pink);
+            padding: 1.5rem 2rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 2.2rem;
+            letter-spacing: -0.5px;
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+            padding: 1.5rem;
+            gap: 1.5rem;
+        }
+        
+        .sidebar {
+            width: 320px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 1.8rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .image-container {
+            flex: 1;
+            background-color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        
+        .controls {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: center;
+        }
+        
+        .section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        
+        .section-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--primary-blue);
+            font-size: 1.1rem;
+            font-family: 'Nunito', sans-serif;
+        }
+        
+        button {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.95rem;
+        }
+        
+        button:hover {
+            background-color: var(--secondary-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(31, 65, 114, 0.3);
+        }
+        
+        button.selected {
+            background-color: var(--success-color);
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        select, input[type="number"] {
+            padding: 0.7rem;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            background-color: white;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(31, 65, 114, 0.1);
+        }
+        
+        input.error {
+            border-color: var(--error-color);
+            background-color: rgba(244, 67, 54, 0.05);
+            box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-blue);
+        }
+        
+        .checkbox-group label {
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .slider-container {
+            margin-top: 0.8rem;
+            display: none;
+        }
+        
+        .slider-container.visible {
+            display: block;
+        }
+        
+        .input-container {
+            margin-top: 0.8rem;
+            display: none;
+        }
+        
+        .input-container.visible {
+            display: block;
+        }
+        
+        .metric-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+        }
+        
+        .metric-btn {
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+        
+        .metric-btn.selected {
+            background-color: var(--success-color);
+            transform: translateX(5px);
+        }
+        
+        .download-btn {
+            background-color: #4CAF50;
+            margin-top: 1rem;
+            font-weight: 700;
+            padding: 0.8rem 1.5rem;
+        }
+        
+        .download-btn:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #e1e5e9;
+        }
+        
+        .tab {
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: 'Nunito', sans-serif;
+        }
+        
+        .tab:hover {
+            color: var(--secondary-blue);
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid var(--primary-blue);
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .status {
+            padding: 0.8rem;
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.7);
+            font-family: 'Nunito', sans-serif;
+        }
+        
+        .status.error {
+            color: var(--error-color);
+            background-color: rgba(244, 67, 54, 0.05);
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 12px;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--primary-pink);
+            border-top: 4px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.3rem;
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+        
+        .download-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin-top: 0.8rem;
+        }
+        
+        .download-options select {
+            width: 100%;
+        }
+        
+        label {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            font-family: 'Nunito', sans-serif;
+        }
+        
+        .placeholder-text {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.2rem;
+            color: #999;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .range-inputs {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .range-inputs .input-group {
+            flex: 1;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary-blue);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .download-options {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .range-inputs {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Генератор мозаики</h1>
+    </header>
+    
+    <div class="container">
+        <div class="sidebar">
+            <div class="section">
+                <div class="section-title">Загрузка данных</div>
+                <button id="selectFolderBtn">Выбрать тайлы</button>
+                <button id="selectImageBtn">Выбрать исходное изображение</button>
+                <div id="tilesCount" class="status" style="margin-top: 0.5rem; font-size: 0.9rem;">Тайлы не загружены</div>
+                <div id="uploadProgress" class="progress-bar hidden">
+                    <div id="uploadProgressFill" class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Метрика сравнения</div>
+                <div class="metric-buttons">
+                    <button class="metric-btn" data-metric="color">Цвет</button>
+                    <button class="metric-btn" data-metric="color_contrast">Цвет + Контраст</button>
+                    <button class="metric-btn" data-metric="gradient">Градиент</button>
+                    <button class="metric-btn" data-metric="texture">Текстура</button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Параметры генерации</div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="limitRepeats">
+                    <label for="limitRepeats">Ограничить повторы тайлов</label>
+                </div>
+                <div class="input-container" id="repeatsInputContainer">
+                    <label for="maxRepeats">Макс. количество повторов:</label>
+                    <input type="number" id="maxRepeats" min="1" value="10">
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="enableRotation">
+                    <label for="enableRotation">Поворот тайлов</label>
+                </div>
+                <div class="slider-container" id="rotationSliderContainer">
+                    <label for="rotationAngle">Угол поворота: <span id="rotationValue">0</span>°</label>
+                    <input type="range" id="rotationAngle" min="0" max="360" value="0">
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Параметры мозаики</div>
+                <div class="range-inputs">
+                    <div class="input-group">
+                        <label for="tileSize">Размер тайла:</label>
+                        <input type="number" id="tileSize" min="10" max="200" step="10" value="30">
+                    </div>
+                    <div class="input-group">
+                        <label for="gridStep">Размер клетки:</label>
+                        <input type="number" id="gridStep" min="10" max="200" step="10" value="30">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Постобработка</div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="alphaBlend">
+                    <label for="alphaBlend">Альфа-смешивание с оригиналом</label>
+                </div>
+                <div class="slider-container" id="alphaBlendContainer">
+                    <label for="alphaBlendIntensity">Интенсивность: <span id="alphaBlendValue">0.5</span></label>
+                    <input type="range" id="alphaBlendIntensity" min="0" max="1" step="0.1" value="0.5">
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="colorCorrection">
+                    <label for="colorCorrection">Цветокоррекция</label>
+                </div>
+                <div class="slider-container" id="colorCorrectionContainer">
+                    <label for="colorCorrectionIntensity">Интенсивность: <span id="colorCorrectionValue">0.5</span></label>
+                    <input type="range" id="colorCorrectionIntensity" min="0" max="1" step="0.1" value="0.5">
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="seamSmoothing">
+                    <label for="seamSmoothing">Сглаживание швов</label>
+                </div>
+                <div class="slider-container" id="seamSmoothingContainer">
+                    <label for="seamSmoothingIntensity">Интенсивность: <span id="seamSmoothingValue">0.5</span></label>
+                    <input type="range" id="seamSmoothingIntensity" min="0" max="1" step="0.1" value="0.5">
+                </div>
+            </div>
+            
+            <button id="generateBtn">Создать мозаику</button>
+            
+            <div class="section">
+                <div class="section-title">Скачивание</div>
+                <div class="download-options">
+                    <label for="resolutionSelect">Разрешение:</label>
+                    <select id="resolutionSelect">
+                        <option value="original">Оригинальное разрешение</option>
+                        <option value="3840x2160">4K Ultra HD (3840x2160)</option>
+                        <option value="2560x1440">Quad HD (2560x1440)</option>
+                        <option value="1920x1080">Full HD (1920x1080)</option>
+                        <option value="1600x900">HD+ (1600x900)</option>
+                        <option value="1366x768">HD (1366x768)</option>
+                        <option value="1280x720">HD Ready (1280x720)</option>
+                        <option value="1024x768">XGA (1024x768)</option>
+                        <option value="800x600">SVGA (800x600)</option>
+                        <option value="640x480">VGA (640x480)</option>
+                    </select>
+                    
+                    <label for="formatSelect">Формат:</label>
+                    <select id="formatSelect">
+                        <option value="png">PNG - Высокое качество</option>
+                        <option value="jpg">JPG - Хорошее сжатие</option>
+                        <option value="webp">WebP - Современный формат</option>
+                        <option value="bmp">BMP - Без сжатия</option>
+                        <option value="tiff">TIFF - Для печати</option>
+                    </select>
+                </div>
+                <button class="download-btn" id="downloadBtn">Скачать мозаику</button>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="tabs">
+                <div class="tab active" data-tab="mosaic">Мозаика</div>
+                <div class="tab" data-tab="original">Исходное изображение</div>
+            </div>
+            
+            <div class="image-container">
+                <div id="loadingOverlay" class="loading-overlay hidden">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Генерация мозаики...</div>
+                </div>
+             
+                <div id="mosaicTab" class="tab-content">
+                    <div id="mosaicPlaceholder" class="placeholder-text">Мозаика будет отображена здесь после генерации</div>
+                    <img id="mosaicImage" class="hidden" alt="Сгенерированная мозаика">
+                </div>
+                
+                <div id="originalTab" class="tab-content hidden">
+                    <div id="originalPlaceholder" class="placeholder-text">Исходное изображение не выбрано</div>
+                    <img id="originalImage" class="hidden" alt="Исходное изображение">
+                </div>
+            </div>
+            
+            <div class="status" id="statusMessage">Готов к работе</div>
+        </div>
+    </div>
+
+    <script>
+        // Элементы интерфейса
+        const selectFolderBtn = document.getElementById('selectFolderBtn');
+        const selectImageBtn = document.getElementById('selectImageBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const metricButtons = document.querySelectorAll('.metric-btn');
+        const limitRepeatsCheckbox = document.getElementById('limitRepeats');
+        const repeatsInputContainer = document.getElementById('repeatsInputContainer');
+        const enableRotationCheckbox = document.getElementById('enableRotation');
+        const rotationSliderContainer = document.getElementById('rotationSliderContainer');
+        const rotationAngleSlider = document.getElementById('rotationAngle');
+        const rotationValue = document.getElementById('rotationValue');
+        const mosaicTab = document.getElementById('mosaicTab');
+        const originalTab = document.getElementById('originalTab');
+        const mosaicImage = document.getElementById('mosaicImage');
+        const originalImage = document.getElementById('originalImage');
+        const mosaicPlaceholder = document.getElementById('mosaicPlaceholder');
+        const originalPlaceholder = document.getElementById('originalPlaceholder');
+        const statusMessage = document.getElementById('statusMessage');
+        const tabs = document.querySelectorAll('.tab');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const tilesCountElement = document.getElementById('tilesCount');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const uploadProgressFill = document.getElementById('uploadProgressFill');
+        
+        // Элементы постобработки
+        const alphaBlendCheckbox = document.getElementById('alphaBlend');
+        const alphaBlendContainer = document.getElementById('alphaBlendContainer');
+        const alphaBlendIntensity = document.getElementById('alphaBlendIntensity');
+        const alphaBlendValue = document.getElementById('alphaBlendValue');
+        
+        const colorCorrectionCheckbox = document.getElementById('colorCorrection');
+        const colorCorrectionContainer = document.getElementById('colorCorrectionContainer');
+        const colorCorrectionIntensity = document.getElementById('colorCorrectionIntensity');
+        const colorCorrectionValue = document.getElementById('colorCorrectionValue');
+        
+        const seamSmoothingCheckbox = document.getElementById('seamSmoothing');
+        const seamSmoothingContainer = document.getElementById('seamSmoothingContainer');
+        const seamSmoothingIntensity = document.getElementById('seamSmoothingIntensity');
+        const seamSmoothingValue = document.getElementById('seamSmoothingValue');
+        
+        // Поля ввода для валидации
+        const tileSizeInput = document.getElementById('tileSize');
+        const gridStepInput = document.getElementById('gridStep');
+        const maxRepeatsInput = document.getElementById('maxRepeats');
+        
+        // Состояние приложения
+        let selectedTiles = [];
+        let selectedImage = null;
+        let selectedMetric = 'color';
+        let mosaicData = null;
+        
+        // Инициализация валидации
+        function initializeValidation() {
+            // Добавляем обработчики для всех числовых полей ввода
+            const numberInputs = [tileSizeInput, gridStepInput, maxRepeatsInput];
+            
+            numberInputs.forEach(input => {
+                // Валидация при вводе
+                input.addEventListener('input', function() {
+                    validateNumberInput(this);
+                });
+                
+                // Валидация при потере фокуса
+                input.addEventListener('blur', function() {
+                    validateNumberInput(this);
+                    // Корректируем значение для размера тайла и сетки
+                    if (this === tileSizeInput || this === gridStepInput) {
+                        const value = parseInt(this.value);
+                        if (value < 10) this.value = 10;
+                        if (value > 200) this.value = 200;
+                        // Округляем до ближайшего шага 10
+                        this.value = Math.round(value / 10) * 10;
+                    }
+                });
+                
+                // Предотвращаем ввод нечисловых символов
+                input.addEventListener('keypress', function(e) {
+                    const charCode = e.which ? e.which : e.keyCode;
+                    // Разрешаем только цифры, Backspace, Delete, Tab, стрелки
+                    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        }
+        
+        // Функция валидации числового ввода
+        function validateNumberInput(input) {
+            const value = input.value.trim();
+            const min = parseInt(input.min) || 1;
+            const max = parseInt(input.max) || Infinity;
+            
+            // Проверяем, что значение - целое положительное число в допустимом диапазоне
+            if (value === '' || isNaN(value) || !Number.isInteger(parseFloat(value)) || 
+                parseInt(value) < min || parseInt(value) > max) {
+                input.classList.add('error');
+                return false;
+            } else {
+                input.classList.remove('error');
+                return true;
+            }
+        }
+        
+        // Проверка всех полей ввода
+        function validateAllInputs() {
+            const inputs = [tileSizeInput, gridStepInput];
+            
+            if (limitRepeatsCheckbox.checked) {
+                inputs.push(maxRepeatsInput);
+            }
+            
+            let allValid = true;
+            inputs.forEach(input => {
+                if (!validateNumberInput(input)) {
+                    allValid = false;
+                }
+            });
+            
+            return allValid;
+        }
+        
+        // Обработчики событий
+        selectFolderBtn.addEventListener('click', () => {
+            // Замена выбора папки на множественный выбор файлов
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.multiple = true;
+            fileInput.accept = 'image/*';
+            fileInput.onchange = (e) => {
+                selectedTiles = Array.from(e.target.files);
+                if (selectedTiles.length > 0) {
+                    uploadTiles(selectedTiles);
+                }
+            };
+            fileInput.click();
+        });
+        
+        selectImageBtn.addEventListener('click', () => {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        originalImage.src = event.target.result;
+                        originalImage.classList.remove('hidden');
+                        originalPlaceholder.classList.add('hidden');
+                        selectImageBtn.classList.add('selected');
+                        selectedImage = file;
+                        updateStatus('Исходное изображение загружено');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            fileInput.click();
+        });
+        
+        metricButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                metricButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedMetric = btn.dataset.metric;
+                setMetric(selectedMetric);
+                updateStatus(`Выбрана метрика: ${getMetricName(selectedMetric)}`);
+            });
+        });
+        
+        limitRepeatsCheckbox.addEventListener('change', () => {
+            repeatsInputContainer.classList.toggle('visible', limitRepeatsCheckbox.checked);
+        });
+        
+        enableRotationCheckbox.addEventListener('change', () => {
+            rotationSliderContainer.classList.toggle('visible', enableRotationCheckbox.checked);
+        });
+        
+        rotationAngleSlider.addEventListener('input', () => {
+            rotationValue.textContent = rotationAngleSlider.value;
+        });
+        
+        // Обработчики для постобработки
+        alphaBlendCheckbox.addEventListener('change', function() {
+            alphaBlendContainer.classList.toggle('visible', this.checked);
+        });
+        
+        colorCorrectionCheckbox.addEventListener('change', function() {
+            colorCorrectionContainer.classList.toggle('visible', this.checked);
+        });
+        
+        seamSmoothingCheckbox.addEventListener('change', function() {
+            seamSmoothingContainer.classList.toggle('visible', this.checked);
+        });
+        
+        alphaBlendIntensity.addEventListener('input', function() {
+            alphaBlendValue.textContent = this.value;
+        });
+        
+        colorCorrectionIntensity.addEventListener('input', function() {
+            colorCorrectionValue.textContent = this.value;
+        });
+        
+        seamSmoothingIntensity.addEventListener('input', function() {
+            seamSmoothingValue.textContent = this.value;
+        });
+        
+        generateBtn.addEventListener('click', () => {
+            if (selectedTiles.length === 0 || !selectedImage) {
+                updateStatus('Ошибка: необходимо выбрать тайлы и исходное изображение', true);
+                return;
+            }
+            
+            // Проверяем валидность всех введенных значений
+            if (!validateAllInputs()) {
+                updateStatus('Ошибка: проверьте правильность введенных параметров', true);
+                return;
+            }
+            
+            generateMosaic();
+        });
+        
+        downloadBtn.addEventListener('click', () => {
+            if (!mosaicData) {
+                updateStatus('Ошибка: мозаика не создана', true);
+                return;
+            }
+            
+            downloadMosaic();
+        });
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const tabId = tab.dataset.tab;
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                document.getElementById(`${tabId}Tab`).classList.remove('hidden');
+            });
+        });
+        
+        // API функции
+        async function uploadTiles(tiles) {
+            uploadProgress.classList.remove('hidden');
+            uploadProgressFill.style.width = '0%';
+            
+            const BATCH_SIZE = 100; // Размер батча для загрузки
+            const totalBatches = Math.ceil(tiles.length / BATCH_SIZE);
+            
+            const enableRotation = enableRotationCheckbox.checked;
+            const rotationAngle = rotationAngleSlider.value;
+            const tileSize = tileSizeInput.value;
+            
+            let uploadedCount = 0;
+            
+            for (let i = 0; i < totalBatches; i++) {
+                const start = i * BATCH_SIZE;
+                const end = Math.min(start + BATCH_SIZE, tiles.length);
+                const batch = tiles.slice(start, end);
+                
+                const formData = new FormData();
+                batch.forEach(tile => {
+                    formData.append('tiles', tile);
+                });
+                formData.append('batchIndex', i);
+                formData.append('totalBatches', totalBatches);
+                formData.append('tileSize', tileSize);
+                formData.append('enableRotation', enableRotation);
+                formData.append('rotationAngle', rotationAngle);
+                
+                try {
+                    const response = await fetch('/api/upload-tiles-batch', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        uploadedCount += result.processedInBatch;
+                        const progress = Math.round((uploadedCount / tiles.length) * 100);
+                        uploadProgressFill.style.width = `${progress}%`;
+                        updateStatus(`Загружено тайлов: ${uploadedCount} из ${tiles.length}`);
+                    } else {
+                        updateStatus('Ошибка загрузки батча: ' + result.error, true);
+                        uploadProgress.classList.add('hidden');
+                        return;
+                    }
+                } catch (error) {
+                    updateStatus('Ошибка загрузки батча: ' + error.message, true);
+                    uploadProgress.classList.add('hidden');
+                    return;
+                }
+            }
+            
+            // Финализация загрузки
+            await finalizeUpload(tiles.length, enableRotation, rotationAngle);
+        }
+        
+        async function finalizeUpload(totalFiles, enableRotation, rotationAngle) {
+            try {
+                const response = await fetch('/api/finalize-upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        totalFiles: totalFiles,
+                        enableRotation: enableRotation,
+                        rotationAngle: rotationAngle
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    selectFolderBtn.classList.add('selected');
+                    tilesCountElement.textContent = `Загружено тайлов: ${result.tilesCount}`;
+                    updateStatus(result.message);
+                    uploadProgress.classList.add('hidden');
+                } else {
+                    updateStatus('Ошибка финализации: ' + result.error, true);
+                    uploadProgress.classList.add('hidden');
+                }
+            } catch (error) {
+                updateStatus('Ошибка финализации: ' + error.message, true);
+                uploadProgress.classList.add('hidden');
+            }
+        }
+        
+        async function generateMosaic() {
+            // Проверяем валидность всех введенных значений
+            if (!validateAllInputs()) {
+                updateStatus('Ошибка: проверьте правильность введенных параметров', true);
+                return;
+            }
+
+            // Показываем индикатор загрузки ТОЛЬКО перед началом генерации
+            loadingOverlay.classList.remove('hidden');
+            updateStatus('Генерация мозаики...');
+            generateBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('image', selectedImage);
+            formData.append('tileSize', tileSizeInput.value);
+            formData.append('gridStep', gridStepInput.value);
+            formData.append('maxRepeats', limitRepeatsCheckbox.checked ? maxRepeatsInput.value : '1000000');
+            formData.append('repeats', limitRepeatsCheckbox.checked);
+            formData.append('rotation', enableRotationCheckbox.checked);
+            formData.append('rotationAngle', rotationAngleSlider.value);
+            formData.append('metric', selectedMetric);
+            
+            // Добавляем параметры постобработки
+            formData.append('alphaBlend', alphaBlendCheckbox.checked);
+            formData.append('alphaBlendIntensity', alphaBlendIntensity.value);
+            formData.append('colorCorrection', colorCorrectionCheckbox.checked);
+            formData.append('colorCorrectionIntensity', colorCorrectionIntensity.value);
+            formData.append('seamSmoothing', seamSmoothingCheckbox.checked);
+            formData.append('seamSmoothingIntensity', seamSmoothingIntensity.value);
+
+            try {
+                const response = await fetch('/api/generate-mosaic', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    mosaicImage.src = result.mosaic;
+                    mosaicImage.classList.remove('hidden');
+                    mosaicPlaceholder.classList.add('hidden');
+                    mosaicData = result.mosaic;
+                    updateStatus('Мозаика успешно создана');
+                } else {
+                    updateStatus('Ошибка генерации: ' + result.error, true);
+                }
+            } catch (error) {
+                updateStatus('Ошибка генерации: ' + error.message, true);
+            } finally {
+                // Скрываем индикатор загрузки в любом случае
+                loadingOverlay.classList.add('hidden');
+                generateBtn.disabled = false;
+            }
+        }
+                
+        async function downloadMosaic() {
+            const resolution = document.getElementById('resolutionSelect').value;
+            const format = document.getElementById('formatSelect').value;
+            
+            try {
+                const response = await fetch('/api/download-mosaic', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        format: format,
+                        resolution: resolution
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const link = document.createElement('a');
+                    link.href = result.dataUrl;
+                    link.download = `mosaic_${resolution}.${format}`;
+                    link.click();
+                    
+                    const formatName = document.getElementById('formatSelect').options[document.getElementById('formatSelect').selectedIndex].text.split(' - ')[0];
+                    updateStatus(`Мозаика скачана в формате ${formatName}, разрешение: ${resolution}`);
+                } else {
+                    updateStatus('Ошибка скачивания: ' + result.error, true);
+                }
+            } catch (error) {
+                updateStatus('Ошибка скачивания: ' + error.message, true);
+            }
+        }
+        
+        async function setMetric(metricName) {
+            try {
+                const response = await fetch('/api/set-metric', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        metric: metricName
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    updateStatus('Ошибка установки метрики: ' + result.error, true);
+                }
+            } catch (error) {
+                updateStatus('Ошибка установки метрики: ' + error.message, true);
+            }
+        }
+        
+        async function getTilesCount() {
+            try {
+                const response = await fetch('/api/tiles-count');
+                const result = await response.json();
+                
+                if (result.count > 0) {
+                    tilesCountElement.textContent = `Загружено тайлов: ${result.count}`;
+                    selectFolderBtn.classList.add('selected');
+                }
+            } catch (error) {
+                console.error('Error getting tiles count:', error);
+            }
+        }
+        
+        // Вспомогательные функции
+        function updateStatus(message, isError = false) {
+            statusMessage.textContent = message;
+            if (isError) {
+                statusMessage.classList.add('error');
+            } else {
+                statusMessage.classList.remove('error');
+            }
+        }
+        
+        function getMetricName(metric) {
+            const names = {
+                'color': 'Цвет',
+                'color_contrast': 'Цвет + Контраст',
+                'gradient': 'Градиент',
+                'texture': 'Текстура'
+            };
+            return names[metric] || metric;
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.metric-btn[data-metric="color"]').classList.add('selected');
+            initializeValidation();
+            getTilesCount();
+            
+            // Явно скрываем индикатор загрузки при старте
+            loadingOverlay.classList.add('hidden');
+        });
+    </script>
+</body>
+</html>
